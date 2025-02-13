@@ -11,9 +11,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    sh '
-		    
-                    docker build -t app1 .'  
+                    sh 'docker build -t app1 .'  
                 }
             }
         }
