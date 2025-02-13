@@ -8,18 +8,6 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                script {
-                    sh '''
-                    python3 -m pip install --upgrade pip
-                    pip3 install --no-cache-dir -r requirements.txt'''
-	            //pip3 install -r requirements.txt'
-                    sh 'cp -r requirements.txt single-server-deployment'
-                }
-            }
-        }
-
         stage('Build') {
             steps {
                 script {
