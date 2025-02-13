@@ -31,7 +31,7 @@ pipeline {
         }
         stage('Deploy to ECS') {
             steps {
-                withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
+                withAWS(credentials: 'aws_credentials', region: 'us-east-1') {
                     sh 'aws ecs update-service --cluster flask-cluster --service flask-app-service --force-new-deployment'
                 }
             }
