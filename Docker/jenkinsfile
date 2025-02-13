@@ -10,11 +10,6 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/bhargavibairagoni/python-flask-app.git'
             }
         }
-        stage('Install') {
-            steps {
-                sh 'pip install -r requirements.txt'
-            }
-        }
         stage('Test') {
             steps {
                 sh 'pytest || true'
@@ -22,7 +17,6 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                echo 'Building Docker Image...'
                 sh 'docker build -t flask-app .'
             }
         }
