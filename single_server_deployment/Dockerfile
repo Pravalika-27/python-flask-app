@@ -7,6 +7,6 @@ COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 EXPOSE 5000
 COPY . .
-RUN chmod 644 /code/templates/index.html
+RUN ls -l /code/templates && chmod 644 /code/templates/index.html || echo "index.html not found"
 CMD ["flask","run","--debug"]
 
