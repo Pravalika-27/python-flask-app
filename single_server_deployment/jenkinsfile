@@ -11,7 +11,9 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    sh 'docker build -t app1 ./single-server-deployment'   
+                    sh '''
+		    cd single-server-deployment
+                    docker build -t app1 .'   
                 }
             }
         }
