@@ -13,7 +13,7 @@ pipeline {
                 script {
                     sh '''
 		    cd single-server-deployment
-                    docker build -t app1 .'   
+                    docker build -t app1 .'''   
                 }
             }
         }
