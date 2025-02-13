@@ -17,7 +17,7 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    sh 'docker run --rm app1 pytest tests/'
+                    sh 'docker run --rm app1 pytest test_app.py'
                 }
             }
         }
