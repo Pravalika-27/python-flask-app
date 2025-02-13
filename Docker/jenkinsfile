@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Clone Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/bhargavibairagoni/python-flask-app.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    sh 'pip install -r requirements.txt'
+                    sh 'cp -r requirements.txt single-server-deployment'
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    sh 'docker build -t app1 .'   
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                script {
+                    sh 'docker run --rm app1 pytest'  // Runs tests inside the container
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    sh '''
+                    docker run -itd --name cont1 -p 5001:5000 app1
+                    echo "Application deployed on http://localhost:5001"
+                    '''
+                }
+            }
+        }
+    }
+}
+
