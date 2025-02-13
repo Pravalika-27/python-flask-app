@@ -5,7 +5,6 @@ pipeline {
         stage('Clone Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/bhargavibairagoni/python-flask-app.git'
-                sh 'cd single_server_deployment'
             }
         }
 
