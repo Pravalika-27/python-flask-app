@@ -22,7 +22,7 @@ pipeline {
                 //docker stop flask-app || true
                 //ocker rm flask-app || true
                 docker build -t flask-app ./Docker
-                docker run -itd --name cont1 -p 5001:5000 flask-app' 
+                docker run -itd --name cont1 -p 5001:5000 flask-app'''
             }
         }
         stage('Push to ECR') {
