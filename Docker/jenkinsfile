@@ -16,7 +16,6 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/bhargavibairagoni/python-flask-app.git'
             }
         }
-
         stage('Run Tests') {
             steps {
                 sh 'pytest || true'
