@@ -1,10 +1,8 @@
 pipeline {
     agent any
     environment {
-        AWS_ACCESS_KEY_ID = '$aws_access'
-        AWS_SECRET_ACCESS_KEY = '$SECRET_KEY'
         AWS_DEFAULT_REGION = 'us-east-1'
-}
+    }
     stages {
         stage('Checkout Code') {
             steps {
@@ -28,11 +26,13 @@ pipeline {
         }
         stage('Push to ECR') {
             steps {
-                sh '''
-                aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 905418365089.dkr.ecr.us-east-1.amazonaws.com
-                docker tag flask-app:latest 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app
-                docker push 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app
-                '''
+                withCredentials([aws(credentialsId: 'aws_credentials', accessKeyVariable: 'aws_access', secretKeyVariable: 'SECRET_KEY')]) {
+                    sh '''
+                    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 905418365089.dkr.ecr.us-east-1.amazonaws.com
+                    docker tag flask-app:latest 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app
+                    docker push 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app
+                    '''
+                }
             }
         }
         stage('Deploy to ECS') {
