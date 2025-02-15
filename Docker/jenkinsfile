@@ -1,8 +1,8 @@
 pipeline {
     agent any
     environment {
-        AWS_ACCESS_KEY_ID = 'YOUR_ACCESS_KEY'
-        AWS_SECRET_ACCESS_KEY = 'YOUR_SECRET_KEY'
+        AWS_ACCESS_KEY_ID = '$aws_access'
+        AWS_SECRET_ACCESS_KEY = '$SECRET_KEY'
         AWS_DEFAULT_REGION = 'us-east-1'
 }
     stages {
@@ -19,8 +19,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                //docker stop flask-app || true
-                //docker rm flask-app || true
+                docker stop flask-app || true
+                docker rm flask-app || true
                 docker build -t flask-app ./Docker
                 docker run -itd --name flask-app -p 5001:5000 flask-app
                 '''
