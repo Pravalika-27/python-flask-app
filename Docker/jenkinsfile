@@ -23,7 +23,7 @@ pipeline {
         }
         stage('Push to ECR') {
             steps {
-                withAWS(credentials: 'aws_credentials', region: "us-east-1") {
+                withAWS(region: 'us-east-1', credentials: 'aws_credentials') {
                     sh 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app'
                     sh 'docker tag flask-app:latest 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest'
                     sh 'docker push 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest'
