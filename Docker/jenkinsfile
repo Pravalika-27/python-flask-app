@@ -3,7 +3,12 @@ pipeline {
     environment {
         AWS_ACCOUNT_ID = '905418365089'
         AWS_REGION = 'us-east-1'
-        ECR_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/python-webapp"
+        ECR_REPO_NAME = 'python-webapp'
+        ECR_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}"
+        CLUSTER_NAME = 'python-webapp-cluster'
+        SERVICE_NAME = 'python-webapp-service'
+        TASK_FAMILY = 'python-webapp-task'
+        CONTAINER_NAME = 'python-webapp-container'
     }
     stages {
         stage('Checkout Code') {
@@ -11,32 +16,120 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/bhargavibairagoni/python-flask-app.git'
             }
         }
+
         stage('Run Tests') {
             steps {
                 sh 'pytest || true'
             }
         }
+
+        stage('Create ECR Repository') {
+            steps {
+                withAWS(credentials: 'aws_credentials', region: "${AWS_REGION}") {
+                    sh '''
+                    if ! aws ecr describe-repositories --repository-names ${ECR_REPO_NAME} > /dev/null 2>&1; then
+                        aws ecr create-repository --repository-name ${ECR_REPO_NAME}
+                    fi
+                    '''
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t flask-app ./Docker' 
             }
         }
+
         stage('Push to ECR') {
             steps {
                 withAWS(credentials: 'aws_credentials', region: "${AWS_REGION}") {
-                    sh 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URL}'
-                    sh 'docker tag flask-app:latest ${ECR_URL}:latest'
-                    sh 'docker push ${ECR_URL}:latest'
+                    sh '''
+                    aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URL}
+                    docker tag flask-app:latest ${ECR_URL}:latest
+                    docker push ${ECR_URL}:latest
+                    '''
                 }
             }
         }
+
+        stage('Create ECS Cluster') {
+            steps {
+                withAWS(credentials: 'aws_credentials', region: "${AWS_REGION}") {
+                    sh '''
+                    if ! aws ecs describe-clusters --clusters ${CLUSTER_NAME} | grep -q "ACTIVE"; then
+                        aws ecs create-cluster --cluster-name ${CLUSTER_NAME}
+                    fi
+                    '''
+                }
+            }
+        }
+
+        stage('Create ECS Task Definition') {
+            steps {
+                withAWS(credentials: 'aws_credentials', region: "${AWS_REGION}") {
+                    sh '''
+                    cat <<EOF > task-definition.json
+                    {
+                      "family": "${TASK_FAMILY}",
+                      "networkMode": "awsvpc",
+                      "executionRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskExecutionRole",
+                      "containerDefinitions": [
+                        {
+                          "name": "${CONTAINER_NAME}",
+                          "image": "${ECR_URL}:latest",
+                          "memory": 512,
+                          "cpu": 256,
+                          "essential": true,
+                          "portMappings": [
+                            {
+                              "containerPort": 5000,
+                              "protocol": "tcp"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                    EOF
+
+                    aws ecs register-task-definition --cli-input-json file://task-definition.json
+                    '''
+                }
+            }
+        }
+
+        stage('Create ECS Service') {
+            steps {
+                withAWS(credentials: 'aws_credentials', region: "${AWS_REGION}") {
+                    sh '''
+                    if ! aws ecs describe-services --cluster ${CLUSTER_NAME} --services ${SERVICE_NAME} | grep -q "MISSING"; then
+                        aws ecs create-service \
+                            --cluster ${CLUSTER_NAME} \
+                            --service-name ${SERVICE_NAME} \
+                            --task-definition ${TASK_FAMILY} \
+                            --desired-count 1 \
+                            --launch-type FARGATE \
+                            --network-configuration "awsvpcConfiguration={subnets=[subnet-12345678,subnet-87654321],securityGroups=[sg-12345678],assignPublicIp=ENABLED}"
+                    fi
+                    '''
+                }
+            }
+        }
+
         stage('Deploy to ECS') {
             steps {
                 withAWS(credentials: 'aws_credentials', region: "${AWS_REGION}") {
-                    sh 'aws ecs update-service --cluster python-webapp-cluster --service python-webapp-service --force-new-deployment'
+                    sh '''
+                    aws ecs update-service \
+                        --cluster ${CLUSTER_NAME} \
+                        --service ${SERVICE_NAME} \
+                        --task-definition ${TASK_FAMILY} \
+                        --force-new-deployment
+                    '''
                 }
             }
         }
     }
 }
+
 
