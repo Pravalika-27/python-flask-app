@@ -13,9 +13,10 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t flask-app ./Docker' 
-                sh 'docker run -itd --name cont -p 5001:5000 flask-app'
-                sh 'sudo yum install git -y'
+                sh '''docker stop flask-app || true && docker rm flask-app || true
+                docker build -t flask-app ./Docker 
+                docker run -itd --name cont -p 5001:5000 flask-app
+                sudo yum install git -y'''
             }
         }
         stage('Push to ECR') {
