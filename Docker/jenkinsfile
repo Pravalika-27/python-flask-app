@@ -13,24 +13,26 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                sh '''docker stop flask-app || true && docker rm flask-app || true
-                docker build -t flask-app ./Docker 
-                docker run -itd --name cont -p 5001:5000 flask-app
-                sudo yum install git -y'''
+                sh '''
+                docker stop flask-app || true
+                docker rm flask-app || true
+                docker build -t flask-app .
+                docker run -itd --name flask-app -p 5001:5000 flask-app
+                '''
             }
         }
         stage('Push to ECR') {
             steps {
-                sh 'aws ecr get-login-password --region us-east-1 --profile default | docker login --username AWS --password-stdin 905418365089.dkr.ecr.us-east-1.amazonaws.com'
-                sh 'docker tag flask-app:latest 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app'
-                sh 'docker push 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app'
-                }
+                sh '''
+                aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 905418365089.dkr.ecr.us-east-1.amazonaws.com
+                docker tag flask-app:latest 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app
+                docker push 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app
+                '''
             }
         }
         stage('Deploy to ECS') {
             steps {
                 sh 'aws ecs update-service --cluster python-webapp-cluster --service flask-app-service --force-new-deployment'
-                }
             }
         }
     }
