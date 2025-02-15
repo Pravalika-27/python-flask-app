@@ -3,7 +3,7 @@ pipeline {
     environment {
         AWS_ACCOUNT_ID = '905418365089'
         AWS_REGION = 'us-east-1'
-        ECR_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/python-webapp"
+        ECR_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/flask-app"
     }
     stages {
         stage('Checkout Code') {
@@ -33,7 +33,7 @@ pipeline {
         stage('Deploy to ECS') {
             steps {
                 withAWS(credentials: 'aws_credentials', region: "${AWS_REGION}") {
-                    sh 'aws ecs update-service --cluster python-webapp-cluster --service python-webapp-service --force-new-deployment'
+                    sh 'aws ecs update-service --cluster python-webapp-cluster --service flask-app-service --force-new-deployment'
                 }
             }
         }
