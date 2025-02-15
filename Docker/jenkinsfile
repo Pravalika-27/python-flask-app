@@ -19,14 +19,15 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t flask-app ./Docker' 
+                sh 'docker run -itd --name cont -p 5001:5000 flask-app'
             }
         }
         stage('Push to ECR') {
             steps {
                 withAWS(credentials: 'aws_credentials-us-east-1', region: "${AWS_REGION}") {
                     sh 'aws ecr get-login-password --region us-east-1 --profile default | docker login --username AWS --password-stdin 905418365089.dkr.ecr.us-east-1.amazonaws.com'
-                    sh 'docker tag flask-app:latest ${ECR_URL}:latest'
-                    sh 'docker push ${ECR_URL}:latest'
+                    sh 'docker tag flask-app:latest ${ECR_URL}:app'
+                    sh 'docker push ${ECR_URL}:app'
                 }
             }
         }
