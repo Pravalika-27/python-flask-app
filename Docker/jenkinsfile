@@ -18,7 +18,9 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t flask-app ./Docker' 
+                sh '''
+                docker build -t flask-app ./Docker
+                docker run -itd --name cont1 -p 5001:5000 flask-app' 
             }
         }
         stage('Push to ECR') {
