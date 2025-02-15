@@ -3,7 +3,7 @@ pipeline {
     environment {
         AWS_ACCOUNT_ID = '905418365089'
         AWS_REGION = 'us-east-1'
-        ECR_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/python-webapp"
+        ECR_URL = "905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app"
     }
     stages {
         stage('Checkout Code') {
@@ -23,10 +23,10 @@ pipeline {
         }
         stage('Push to ECR') {
             steps {
-                withAWS(credentials: 'aws_credentials', region: "${AWS_REGION}") {
-                    sh 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URL}'
-                    sh 'docker tag flask-app:latest ${ECR_URL}:latest'
-                    sh 'docker push ${ECR_URL}:latest'
+                withAWS(credentials: 'aws_credentials', region: "us-east-1") {
+                    sh 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app'
+                    sh 'docker tag flask-app:latest 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest'
+                    sh 'docker push 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest'
                 }
             }
         }
