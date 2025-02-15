@@ -1,7 +1,9 @@
 pipeline {
     agent any
     environment {
-        AWS_DEFAULT_REGION = 'us-east-1'
+        AWS_ACCOUNT_ID = '905418365089'
+        AWS_REGION = 'us-east-1'
+        ECR_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/python-webapp"
     }
     stages {
         stage('Checkout Code') {
@@ -16,31 +18,23 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                sh '''
-                docker stop flask-app || true
-                docker rm flask-app || true
-                docker build -t flask-app ./Docker
-                docker run -itd --name flask-app -p 5001:5000 flask-app
-                '''
+                sh 'docker build -t flask-app ./Docker' 
             }
         }
         stage('Push to ECR') {
             steps {
-                withCredentials([aws(credentialsId: 'aws-credentials', accessKeyVariable: 'aws_access', secretKeyVariable: 'SECRET_KEY')]) {
-                    sh '''
-                    aws configure set aws_access_key_id $aws_access
-                    aws configure set aws_secret_access_key $SECRET_KEY
-                    aws configure set region us-east-1
-                    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 905418365089.dkr.ecr.us-east-1.amazonaws.com
-                    docker tag flask-app:latest 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app
-                    docker push 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app
-                    '''
+                withAWS(credentials: 'aws_credentials', region: "${AWS_REGION}") {
+                    sh 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URL}'
+                    sh 'docker tag flask-app:latest ${ECR_URL}:latest'
+                    sh 'docker push ${ECR_URL}:latest'
                 }
             }
         }
         stage('Deploy to ECS') {
             steps {
-                sh 'aws ecs update-service --cluster python-webapp-cluster --service flask-app-service --force-new-deployment'
+                withAWS(credentials: 'aws_credentials', region: "${AWS_REGION}") {
+                    sh 'aws ecs update-service --cluster python-webapp-cluster --service python-webapp-service --force-new-deployment'
+                }
             }
         }
     }
