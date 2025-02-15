@@ -1,10 +1,5 @@
 pipeline {
     agent any
-    environment {
-        AWS_ACCOUNT_ID = '905418365089'
-        AWS_REGION = 'us-east-1'
-        ECR_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/flask-app"
-    }
     stages {
         stage('Checkout Code') {
             steps {
@@ -27,7 +22,7 @@ pipeline {
             steps {
                 sh 'aws ecr get-login-password --region us-east-1 --profile default | docker login --username AWS --password-stdin 905418365089.dkr.ecr.us-east-1.amazonaws.com'
                 sh 'docker tag flask-app:latest 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app'
-                sh 'docker push 905418365089.dkr.ecr.us-east-1.amazonaws.com/fask-app:app'
+                sh 'docker push 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app'
                 }
             }
         }
