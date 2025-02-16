@@ -14,8 +14,20 @@ pipeline {
         }
         stage('build') {
             steps{
-                sh '''docker build -t flask-app ./Docker
-                docker run -itd --name cont1 -p 5000:5000 flask-app'''
+                sh '''docker build -t flask ./Docker
+                docker run -itd --name cont1 -p 5000:5000 flask'''
+            }
+        }
+        Stage("push to ecr") {
+            steps {
+                withCredentials([aws(credentialsId: 'aws_credentials', accessKeyVariable: 'AWS_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_KEY')]) {
+                sh ''' 
+                aws configure set aws_access_key_id $AWS_ACCESS_KEY
+                aws configure set aws_secret_access_key $AWS_SECRET_KEY
+                aws configure set region $AWS_REGION
+                aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin 905418365089.dkr.ecr.us-east-1.amazonaws.com
+                sudo docker tag flask 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask:latest
+                sudo docker push 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask:latest'''
             }
         }
         
