@@ -17,5 +17,5 @@ spec:
         - name: cont2
           image: bhargavibairagoni/pythonapp:flask
           ports:
-            - containerPort: 5000
+            - containerPort: 6000
 
