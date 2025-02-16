@@ -31,7 +31,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-		    cd kubernetes
+		    //cd kubernetes
                     //aws eks update-kubeconfig --name my-cluster --region $AWS_REGION --force-update
                     kubectl apply -f Deployment.yml
                     kubectl apply -f service.yml
