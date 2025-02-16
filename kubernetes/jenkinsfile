@@ -1,10 +1,8 @@
 pipeline {
     agent any
-
     environment {
         AWS_REGION = 'us-east-1'
     }
-
     stages {
         stage('Clone Code') {
             steps {
@@ -33,7 +31,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-		    cd Kubernetes
+		    cd kubernetes
                     aws eks update-kubeconfig --name my-cluster --region $AWS_REGION
                     kubectl apply -f Deployment.yml
                     kubectl apply -f service.yml
