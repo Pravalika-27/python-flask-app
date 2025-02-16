@@ -2,6 +2,8 @@ pipeline {
     agent any
     environment {
         AWS_REGION = 'us-east-1' 
+        AWS_ACCESS_KEYS='$AWS_ACCESS_KEYS'
+        AWS_SECRET_KEYS='$AWS_SECRET_KEYS'
         ECS_CLUSTER = 'flask-cluster' 
         ECS_SERVICE = 'flask-service' 
         DOCKER_IMAGE = '905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest'  
