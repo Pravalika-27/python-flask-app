@@ -4,7 +4,7 @@ pipeline {
         AWS_REGION = 'us-east-1'
         ECS_CLUSTER = 'flask-cluster'
         ECS_SERVICE = 'flask-service'
-        DOCKER_IMAGE = '905418365089.dkr.ecr.us-east-1.amazonaws.com/flask:latest'
+        DOCKER_IMAGE = '905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app'
     }
     stages {
         stage('Code ') {
@@ -14,8 +14,8 @@ pipeline {
         }
         stage('build') {
             steps{
-                sh '''docker build -t flask ./Docker
-                docker run -itd --name cont1 -p 5000:5000 flask'''
+                sh '''docker build -t flask-app ./Docker
+                docker run -itd --name cont1 -p 5000:5000 flask-app'''
             }
         }
         Stage("push to ecr") {
@@ -26,8 +26,8 @@ pipeline {
                 aws configure set aws_secret_access_key $AWS_SECRET_KEY
                 aws configure set region $AWS_REGION
                 aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin 905418365089.dkr.ecr.us-east-1.amazonaws.com
-                sudo docker tag flask 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask:latest
-                sudo docker push 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask:latest'''
+                sudo docker tag flask 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app
+                sudo docker push 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app'''
             }
         }
         
