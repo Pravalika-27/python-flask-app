@@ -4,33 +4,43 @@ pipeline {
         AWS_REGION = 'us-east-1'
         ECS_CLUSTER = 'flask-cluster'
         ECS_SERVICE = 'flask-service'
-        DOCKER_IMAGE = '905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app'
+        REPO_URL = 'https://github.com/bhargavibairagoni/python-flask-app.git'
+        IMAGE_NAME = 'flask-app'
+        ECR_URL = '905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest'
     }
     stages {
-        stage('Code ') {
+        stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/bhargavibairagoni/python-flask-app.git'
+                git branch: 'main', url: "${REPO_URL}"
             }
         }
-        stage('build') {
-            steps{
-                sh '''docker build -t flask-app ./Docker
-                docker run -itd --name cont1 -p 5000:5000 flask-app'''
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh '''
+                    docker build -t ${IMAGE_NAME} .
+                    docker run -itd --name cont1 -p 5000:5000 ${IMAGE_NAME}
+                    '''
+                }
             }
         }
-        Stage("push to ecr") {
+        stage('Push to ECR') {
             steps {
                 withCredentials([aws(credentialsId: 'aws_credentials', accessKeyVariable: 'AWS_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_KEY')]) {
-                sh ''' 
-                aws configure set aws_access_key_id $AWS_ACCESS_KEY
-                aws configure set aws_secret_access_key $AWS_SECRET_KEY
-                aws configure set region $AWS_REGION
-                aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin 905418365089.dkr.ecr.us-east-1.amazonaws.com
-                sudo docker tag flask 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app
-                sudo docker push 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:app'''
+                    script {
+                        sh '''
+                        aws configure set aws_access_key_id $AWS_ACCESS_KEY
+                        aws configure set aws_secret_access_key $AWS_SECRET_KEY
+                        aws configure set region $AWS_REGION
+
+                        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
+                        docker tag ${IMAGE_NAME} $ECR_URL
+                        docker push $ECR_URL
+                        '''
+                    }
+                }
             }
         }
-        
         stage('Deploy to ECS') {
             steps {
                 script {
@@ -45,7 +55,7 @@ pipeline {
                             --network-mode bridge \
                             --container-definitions '[{
                                 "name": "flask-app",
-                                "image": "'"$DOCKER_IMAGE"'",
+                                "image": "'"$ECR_URL"'",
                                 "memory": 512,
                                 "cpu": 256,
                                 "essential": true,
