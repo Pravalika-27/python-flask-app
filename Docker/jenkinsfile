@@ -1,12 +1,10 @@
 pipeline {
     agent any
     environment {
-        AWS_REGION = 'us-east-1' 
-        AWS_ACCESS_KEYS='$AWS_ACCESS_KEYS'
-        AWS_SECRET_KEYS='$AWS_SECRET_KEYS'
-        ECS_CLUSTER = 'flask-cluster' 
-        ECS_SERVICE = 'flask-service' 
-        DOCKER_IMAGE = '905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest'  
+        AWS_REGION = 'us-east-1'
+        ECS_CLUSTER = 'flask-cluster'
+        ECS_SERVICE = 'flask-service'
+        DOCKER_IMAGE = '905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest'
     }
     stages {
         stage('Code Checkout') {
@@ -17,27 +15,30 @@ pipeline {
         stage('Deploy to ECS') {
             steps {
                 script {
-                    // Ensure AWS CLI uses the configured credentials on the server
-                    sh '''
-                    aws configure set region $AWS_REGION
+                    withCredentials([aws(credentialsId: 'aws_credentials', accessKeyVariable: 'AWS_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_KEY')]) {
+                        sh '''
+                        aws configure set aws_access_key_id $AWS_ACCESS_KEY
+                        aws configure set aws_secret_access_key $AWS_SECRET_KEY
+                        aws configure set region $AWS_REGION
 
-                    aws ecs register-task-definition \
-                        --family flask-app \
-                        --network-mode bridge \
-                        --container-definitions '[{
-                            "name": "flask-app",
-                            "image": "'"$DOCKER_IMAGE"'",
-                            "memory": 512,
-                            "cpu": 256,
-                            "essential": true,
-                            "portMappings": [{"containerPort": 5000, "hostPort": 5000}]
-                        }]'
+                        aws ecs register-task-definition \
+                            --family flask-app \
+                            --network-mode bridge \
+                            --container-definitions '[{
+                                "name": "flask-app",
+                                "image": "'"$DOCKER_IMAGE"'",
+                                "memory": 512,
+                                "cpu": 256,
+                                "essential": true,
+                                "portMappings": [{"containerPort": 5000, "hostPort": 5000}]
+                            }]'
 
-                    aws ecs update-service \
-                        --cluster $ECS_CLUSTER \
-                        --service $ECS_SERVICE \
-                        --force-new-deployment
-                    '''
+                        aws ecs update-service \
+                            --cluster $ECS_CLUSTER \
+                            --service $ECS_SERVICE \
+                            --force-new-deployment
+                        '''
+                    }
                 }
             }
         }
