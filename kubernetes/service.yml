@@ -8,6 +8,6 @@ spec:
   selector:
     app: python
   ports:
-    - port: 5000
-      targetPort: 5003
+    - port: 6000
+      targetPort: 6003
 
