@@ -1,43 +1,41 @@
 pipeline {
     agent any
     environment {
-        AWS_ACCOUNT_ID = '905418365089'
-        AWS_REGION = 'us-east-1'
-        ECR_URL = "905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app"
+        AWS_REGION = 'us-east-1' 
+        ECS_CLUSTER = 'flask-cluster' 
+        ECS_SERVICE = 'flask-service' 
+        DOCKER_IMAGE = '905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest' // Replace with your Docker Hub image 
     }
     stages {
-        stage('Checkout Code') {
+        stage('Code Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/bhargavibairagoni/python-flask-app.git'
-            }
-        }
-        stage('Run Tests') {
-            steps {
-                sh 'pytest || true'
-            }
-        }
-        stage('Build Docker Image') {
-            steps {
-                sh '''
-                docker stop cont2 || true
-                docker rm cont2 || true
-                docker build -t flask-app ./Docker
-                docker run -itd --name cont2 -p 5001:5000 flask-app'''
-            }
-        }
-        stage('Push to ECR') {
-            steps {
-                withAWS(region: 'us-east-1', credentials: 'aws_credentials') {
-                    sh 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app'
-                    sh 'docker tag flask-app:latest 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest'
-                    sh 'docker push 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest'
-                }
+                checkout scm
             }
         }
         stage('Deploy to ECS') {
             steps {
-                withAWS(credentials: 'aws_credentials', region: "${AWS_REGION}") {
-                    sh 'aws ecs update-service --cluster python-webapp-cluster --service python-webapp-service --force-new-deployment'
+                script {
+                    // Ensure AWS CLI uses the configured credentials on the server
+                    sh '''
+                    aws configure set region $AWS_REGION
+
+                    aws ecs register-task-definition \
+                        --family flask-app \
+                        --network-mode bridge \
+                        --container-definitions '[{
+                            "name": "flask-app",
+                            "image": "'"$DOCKER_IMAGE"'",
+                            "memory": 512,
+                            "cpu": 256,
+                            "essential": true,
+                            "portMappings": [{"containerPort": 5000, "hostPort": 5000}]
+                        }]'
+
+                    aws ecs update-service \
+                        --cluster $ECS_CLUSTER \
+                        --service $ECS_SERVICE \
+                        --force-new-deployment
+                    '''
                 }
             }
         }
