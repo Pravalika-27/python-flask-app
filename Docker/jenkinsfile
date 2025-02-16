@@ -18,6 +18,7 @@ pipeline {
             steps {
                 script {
                     sh '''
+                    cd Docker
                     docker build -t ${IMAGE_NAME} .
                     docker run -itd --name cont1 -p 5000:5000 ${IMAGE_NAME}
                     '''
