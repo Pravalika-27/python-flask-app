@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: python-app
-          image: bhargavibairagoni/pythonapp:flask
+          image: 905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app
           imagePullPolicy: Always
           ports:
             - containerPort: 80
