@@ -39,6 +39,21 @@ pipeline {
                     --namespace flask-app
                     kubectl apply -f https://github.com/bhargavibairagoni/python-flask-app.git/kubernetes/Deployment.yml
                     ingress controller --> ingress-app --> Load balancer --> target group, port
+                    ALB controller
+                    eksctl utils associate-iam-oidc-provider --cluster eks-cluster --approve
+                    ALB controller --> Pod --> Access to AWS service such as ALB
+                    curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.5.4/docs/install/iam_policy.json
+                    aws iam create-policy \
+                        --policy-name AWSLoadBalancerControllerIAMPolicy \
+                        --policy-document file://iam_policy.json
+                    eksctl create iamserviceaccount \
+                        --cluster=eks-cluster \
+                        --namespace=kube-system \
+                        --name=aws-load-balancer-controller \
+                        --role-name AmazonEKSLoadBalancerControllerRole \
+                        --attach-policy-arn=arn:aws:iam::905418365089:policy/AWSLoadBalancerControllerIAMPolicy \
+                        --approve
+                    helm repo add eks https://aws.github.io/eks-charts
                     //kubectl apply -f service.yml
                     '''
                 }
