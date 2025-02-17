@@ -36,9 +36,6 @@ pipeline {
                     script {
                         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',credentialsId: 'aws_credentials']]) {
                         sh '''
-                        aws configure set region $AWS_REGION
-                        aws eks update-kubeconfig --region us-east-1 --name eks-cluster
-                        sleep 60
                         cd kubernetes
                         kubectl create -f Deployment.yml
 
