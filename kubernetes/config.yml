@@ -1,0 +1,25 @@
+apiVersion: v1
+clusters:
+- cluster:
+    server: https://B70E20B0B3FBB35C4AD47AFD40F18BFC.yl4.us-east-1.eks.amazonaws.com
+    certificate-authority-data: <data>
+  name: arn:aws:eks:us-east-1:905418365089:cluster/eks-cluster
+contexts:
+- context:
+    cluster: arn:aws:eks:us-east-1:905418365089:cluster/eks-cluster
+    user: arn:aws:eks:us-east-1:905418365089:cluster/eks-cluster
+  name: arn:aws:eks:us-east-1:905418365089:cluster/eks-cluster
+current-context: arn:aws:eks:us-east-1:905418365089:cluster/eks-cluster
+kind: Config
+preferences: {}
+users:
+- name: arn:aws:eks:us-east-1:905418365089:cluster/eks-cluster
+  user:
+    exec:
+      apiVersion: client.authentication.k8s.io/v1beta1
+      command: aws
+      args:
+        - eks
+        - get-token
+        - --cluster-name
+        - eks-cluster
