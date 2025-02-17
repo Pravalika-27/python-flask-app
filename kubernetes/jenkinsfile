@@ -13,16 +13,7 @@ pipeline {
                 git branch: 'main', url: "${REPO_URL}"
             }
         }
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    sh '''
-
-                    '''
-                }
-            }
-        }
-        stage('Push to ECR') {
+        stage('create Eks') {
             steps {
                 withCredentials([aws(credentialsId: 'aws_credentials', accessKeyVariable: 'AWS_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_KEY')]) {
                     script {
@@ -40,7 +31,7 @@ pipeline {
                 }
             }
         }
-        stage('Deploy to ECS') {
+        stage('Deploy to Eks') {
             steps {
                 script {
                     withCredentials([aws(credentialsId: 'aws_credentials', accessKeyVariable: 'AWS_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_KEY')]) {
