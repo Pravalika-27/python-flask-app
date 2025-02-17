@@ -11,6 +11,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'main', url: "${REPO_URL}"
+                sh ' cd kubernetes'
             }
         }
         stage('create Eks') {
@@ -36,7 +37,7 @@ pipeline {
                         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',credentialsId: 'aws_credentials']]) {
                         sh '''
                         aws configure set region $AWS_REGION
-                        kubectl create -f https:///bhargavibairagoni/python-flask-app/kubernetes/Deployment.yml
+                        kubectl create -f Deployment.yml
 
                         '''
                     }
