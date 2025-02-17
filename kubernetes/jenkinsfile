@@ -32,6 +32,11 @@ pipeline {
                 script {
                     sh '''
                     aws eks update-kubeconfig --name eks-cluster --region $AWS_REGION
+                    eksctl create fatgateprofile \
+                    --cluster eks-cluster \
+                    --region us-east-1 \
+                    --name alb-sample-app \
+                    --namespace flask-app
                     kubectl apply -f Deployment.yml
                     kubectl apply -f service.yml
                     '''
