@@ -2,13 +2,17 @@ pipeline {
     agent any
     environment {
         AWS_REGION = 'us-east-1'
+        EKS_CLUSTER_NAME = 'eks-cluster'
+        REPO_URL = 'https://github.com/bhargavibairagoni/python-flask-app.git'
+        BRANCH = 'main'
     }
     stages {
         stage('Clone Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/bhargavibairagoni/python-flask-app.git'
+                git branch: "${BRANCH}", url: "${REPO_URL}"
             }
         }
+
         stage('Create EKS Cluster') {
             steps {
                 script {
@@ -17,8 +21,9 @@ pipeline {
                         aws configure set aws_access_key_id $AWS_ACCESS_KEY
                         aws configure set aws_secret_access_key $AWS_SECRET_KEY
                         aws configure set region $AWS_REGION
-                        if ! eksctl get cluster --name eks-cluster --region $AWS_REGION; then
-                            eksctl create cluster --name eks-cluster --region $AWS_REGION --fargate
+
+                        if ! eksctl get cluster --name $EKS_CLUSTER_NAME --region $AWS_REGION; then
+                            eksctl create cluster --name $EKS_CLUSTER_NAME --region $AWS_REGION --fargate
                         else
                             echo "Cluster already exists."
                         fi
@@ -27,21 +32,33 @@ pipeline {
                 }
             }
         }
+
         stage('Build & Deploy to EKS') {
             steps {
                 script {
                     sh '''
-                    aws eks update-kubeconfig --name eks-cluster --region $AWS_REGION
-                    eksctl create fatgateprofile \
-                    --cluster eks-cluster \
-                    --region us-east-1 \
+                    aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+                    
+                    # Create a Fargate profile for deployment (optional)
+                    eksctl create fargateprofile \
+                    --cluster $EKS_CLUSTER_NAME \
+                    --region $AWS_REGION \
                     --name alb-sample-app \
                     --namespace flask-app
-                    kubectl apply -f https://github.com/bhargavibairagoni/python-flask-app.git/kubernetes/Deployment.yml
-                    //kubectl apply -f service.yml
+
+                    # Deploy the application using Kubernetes manifests
+                    kubectl create -f https://github.com/bhargavibairagoni/python-flask-app.git/kubernetes/Deployment.yml
                     '''
                 }
             }
+        }
+    }
+    post {
+        success {
+            echo "Pipeline executed successfully!"
+        }
+        failure {
+            echo "Pipeline failed. Please check the logs."
         }
     }
 }
