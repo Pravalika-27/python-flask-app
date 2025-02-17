@@ -15,7 +15,7 @@ pipeline {
         }
         stage('create Eks') {
             steps {
-                withCredentials([aws(credentialsId: 'aws_credentials', accessKeyVariable: 'AWS_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_KEY')]) {
+                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_KEY')]) {
                     script {
                         sh '''
                         aws configure set aws_access_key_id $AWS_ACCESS_KEY
@@ -34,7 +34,7 @@ pipeline {
         stage('Deploy to Eks') {
             steps {
                 script {
-                    withCredentials([aws(credentialsId: 'aws_credentials', accessKeyVariable: 'AWS_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_KEY')]) {
+                    withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_KEY')]) {
                         sh '''
                         aws configure set aws_access_key_id $AWS_ACCESS_KEY
                         aws configure set aws_secret_access_key $AWS_SECRET_KEY
