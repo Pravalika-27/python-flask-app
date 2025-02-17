@@ -2,35 +2,35 @@ pipeline {
     agent any
     environment {
         AWS_REGION = 'us-east-1'
-        EKS_CLUSTER_NAME = 'eks-cluster'
         REPO_URL = 'https://github.com/bhargavibairagoni/python-flask-app.git'
-        BRANCH = 'main'
+        IMAGE_NAME = 'flask-app'
+        ECR_URL = '905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest'
     }
     stages {
-        stage('Clone Code') {
+        stage('Checkout Code') {
             steps {
-                git branch: "${BRANCH}", url: "${REPO_URL}"
+                git branch: 'main', url: "${REPO_URL}"
             }
         }
-
-        stage('Create EKS Cluster') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    withCredentials([aws(credentialsId: 'aws_credentials', accessKeyVariable: 'AWS_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_KEY')]) {
+                    sh '''
+
+                    '''
+                }
+            }
+        }
+        stage('Push to ECR') {
+            steps {
+                withCredentials([aws(credentialsId: 'aws_credentials', accessKeyVariable: 'AWS_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_KEY')]) {
+                    script {
                         sh '''
                         aws configure set aws_access_key_id $AWS_ACCESS_KEY
                         aws configure set aws_secret_access_key $AWS_SECRET_KEY
                         aws configure set region $AWS_REGION
-
                         if ! eksctl get cluster --name $EKS_CLUSTER_NAME --region $AWS_REGION; then
-                            eksctl create cluster --name eks-cluster \
-                                --region us-east-1 \
-                                --nodegroup-name my-node-group \
-                                --node-type t3.medium \
-                                --nodes 2 \
-                                --nodes-min 1 \
-                                --nodes-max 3 \
-                                --managed
+                            eksctl create cluster --name $EKS_CLUSTER_NAME --region $AWS_REGION --fargate
                         else
                             echo "Cluster already exists."
                         fi
@@ -39,24 +39,20 @@ pipeline {
                 }
             }
         }
-
-        stage('Build & Deploy to EKS') {
+        stage('Deploy to ECS') {
             steps {
                 script {
-                    sh '''
-                    aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
-                    kubectl create -f https://github.com/bhargavibairagoni/python-flask-app.git/kubernetes/Deployment.yml
-                    '''
+                    withCredentials([aws(credentialsId: 'aws_credentials', accessKeyVariable: 'AWS_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_KEY')]) {
+                        sh '''
+                        aws configure set aws_access_key_id $AWS_ACCESS_KEY
+                        aws configure set aws_secret_access_key $AWS_SECRET_KEY
+                        aws configure set region $AWS_REGION
+                        aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+                        kubectl apply -f $REPO_URL/kubernetes/Deployment.yml
+                        '''
+                    }
                 }
             }
-        }
-    }
-    post {
-        success {
-            echo "Pipeline executed successfully!"
-        }
-        failure {
-            echo "Pipeline failed. Please check the logs."
         }
     }
 }
