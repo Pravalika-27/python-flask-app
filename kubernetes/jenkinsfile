@@ -5,9 +5,7 @@ pipeline {
         REPO_URL = 'https://github.com/bhargavibairagoni/python-flask-app.git'
         IMAGE_NAME = 'flask-app'
         ECR_URL = '905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest'
-        EKS_CLUSTER_NAME= 'eks-cluster'
-        AWS_ACCESS_KEY = '$AWS_ACCESS_KEY'
-        AWS_SECRET_KEY = '$AWS_SECRET_KEY'
+        EKS_CLUSTER_NAME = 'eks-cluster'
     }
     stages {
         stage('Checkout Code') {
@@ -20,8 +18,6 @@ pipeline {
                 withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_KEY')]) {
                     script {
                         sh '''
-                        aws configure set aws_access_key_id $AWS_ACCESS_KEY
-                        aws configure set aws_secret_access_key $AWS_SECRET_KEY
                         aws configure set region $AWS_REGION
                         if ! eksctl get cluster --name $EKS_CLUSTER_NAME --region $AWS_REGION; then
                             eksctl create cluster --name $EKS_CLUSTER_NAME --region $AWS_REGION --fargate
@@ -35,11 +31,9 @@ pipeline {
         }
         stage('Deploy to Eks') {
             steps {
-                script {
-                    withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_KEY')]) {
+                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_KEY')]) {
+                    script {
                         sh '''
-                        aws configure set aws_access_key_id $AWS_ACCESS_KEY
-                        aws configure set aws_secret_access_key $AWS_SECRET_KEY
                         aws configure set region $AWS_REGION
                         aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
                         kubectl apply -f $REPO_URL/kubernetes/Deployment.yml
