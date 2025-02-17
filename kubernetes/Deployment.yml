@@ -10,10 +10,10 @@ metadata:
   namespace: flask-app
   name: python-app
 spec:
+  replicas: 2  # Moved outside 'selector'
   selector:
     matchLabels:
       app.kubernetes.io/name: python-app
-      replicas: 2
   template:
     metadata:
       labels:
@@ -32,32 +32,10 @@ metadata:
   namespace: flask-app
   name: python-service
 spec:
+  selector:  # Fixed label to match Deployment
+    app.kubernetes.io/name: python-app
   ports:
     - port: 80
       targetPort: 80
       protocol: TCP
   type: NodePort
-  selector: 
-    api.kubernetes.io/name: python-app
-
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  namespace: flask-app
-  name: ingress-app
-  annotations: 
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-spec:
-  ingressClassName: alb
-  rules:
-    - http:
-      paths: 
-        - path: /
-          pathType: Prefix
-          backend: 
-            service: 
-              name: python-service
-              port:
-                number: 80
