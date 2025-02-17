@@ -33,6 +33,7 @@ pipeline {
             steps {
                 withCredentials([aws(credentialsId: 'aws_credentials', accessKeyVariable: 'AWS_ACCESS_KEY', secretKeyVariable: 'AWS_SECRET_KEY')]) {
                     script {
+                        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',credentialsId: 'aws_credentials']]) {
                         sh '''
                         aws configure set region $AWS_REGION
                         aws eks update-cluster-config --name eks-cluster --region us-east-1 --resources-vpc-config subnetIds=subnet-0341a0b12b142f98f,securityGroupIds=sg-09cc043fb644467d6
