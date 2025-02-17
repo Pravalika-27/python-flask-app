@@ -37,6 +37,7 @@ pipeline {
                         sh '''
                         aws configure set region $AWS_REGION
                         kubectl create -f https://github.com/bhargavibairagoni/python-flask-app.git/kubernetes/Deployment.yml
+
                         '''
                     }
                 }
