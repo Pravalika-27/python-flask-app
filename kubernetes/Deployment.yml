@@ -1,16 +1,23 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata: 
+  name: flask-app
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: python-deployment
+  namespace: flask-app
+  name: python-app
 spec:
-  replicas: 2
   selector:
     matchLabels:
-      app: python
+      app.kubernetes.io/name: python-app
+      replicas: 2
   template:
     metadata:
       labels:
-        app: python
+        app.kubernetes.io/name: python-app
     spec:
       containers:
         - name: cont2
