@@ -36,7 +36,7 @@ pipeline {
                         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',credentialsId: 'aws_credentials']]) {
                         sh '''
                         aws configure set region $AWS_REGION
-                        aws eks update-cluster-config --name eks-cluster --region us-east-1 --resources-vpc-config subnetIds=subnet-0341a0b12b142f98f,subnet-008ba1025f7d09d14 ,securityGroupIds=sg-09cc043fb644467d6
+                        aws eks update-cluster-config --name eks-cluster --region us-east-1 --resources-vpc-config subnetIds=subnet-0341a0b12b142f98f,subnet-008ba1025f7d09d14,securityGroupIds=sg-09cc043fb644467d6
                         kubectl apply -f $REPO_URL/kubernetes/Deployment.yml
                         '''
                     }
