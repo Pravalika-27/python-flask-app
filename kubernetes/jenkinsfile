@@ -18,7 +18,7 @@ pipeline {
                         aws configure set aws_secret_access_key $AWS_SECRET_KEY
                         aws configure set region $AWS_REGION
                         if ! eksctl get cluster --name my-cluster --region $AWS_REGION; then
-                            eksctl create cluster --name my-cluster --region $AWS_REGION --nodegroup-name my-nodes --nodes 2 --node-type t3.medium --with-oidc --managed
+                            eksctl create cluster --name eks-cluster --region $AWS_REGION --fargate
                         else
                             echo "Cluster already exists."
                         fi
