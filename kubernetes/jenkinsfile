@@ -36,7 +36,7 @@ pipeline {
                         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',credentialsId: 'aws_credentials']]) {
                         sh '''
                         aws configure set region $AWS_REGION
-                        kubectl create -f Deployment.yml
+                        kubectl create -f */Deployment.yml
                         '''
                     }
                 }
