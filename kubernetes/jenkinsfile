@@ -6,6 +6,8 @@ pipeline {
         IMAGE_NAME = 'flask-app'
         ECR_URL = '905418365089.dkr.ecr.us-east-1.amazonaws.com/flask-app:latest'
         EKS_CLUSTER_NAME= 'eks-cluster'
+        AWS_ACCESS_KEY = '$AWS_ACCESS_KEY'
+        AWS_SECRET_KEY = '$AWS_SECRET_KEY'
     }
     stages {
         stage('Checkout Code') {
