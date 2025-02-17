@@ -37,8 +37,8 @@ pipeline {
                     --region us-east-1 \
                     --name alb-sample-app \
                     --namespace flask-app
-                    kubectl apply -f /Deployment.yml
-                    kubectl apply -f service.yml
+                    kubectl apply -f https://github.com/bhargavibairagoni/python-flask-app.git/kubernetes/Deployment.yml
+                    //kubectl apply -f service.yml
                     '''
                 }
             }
